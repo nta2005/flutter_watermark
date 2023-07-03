@@ -12,7 +12,7 @@ class SaveFile {
     //Get directory path
     //String path = directory.path;
 
-    String dir = '/storage/emulated/0/Download/';
+    String dir = '/storage/emulated/0/Download';
 
     if (!Platform.isAndroid) {
       dir = (await getDownloadsDirectory())!.path;
