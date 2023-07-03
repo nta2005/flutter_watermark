@@ -3,16 +3,32 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_watermark/utils/file_extension.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:developer' as dev;
+
+import '../utils.dart';
 
 class FileParse {
-  static Future<File> fromAsset(String asset) async {
-    // To open from assets, you can copy them to the app storage folder, and the access them "locally"
+  static Future<File> parse(String path) async {
     Completer<File> completer = Completer();
 
-    // Get fileName
+    try {
+      if (!path.startsWith('http')) {
+        final file = await fromAsset(path);
+        completer.complete(file);
+      } else {
+        final file = await fromInternet(path);
+        completer.complete(file);
+      }
+    } catch (e) {
+      throw Exception('Error parsing file: $e');
+    }
+
+    return completer.future;
+  }
+
+  static Future<File> fromAsset(String asset) async {
+    Completer<File> completer = Completer();
+
     String filename = File(asset).name;
 
     try {
@@ -23,15 +39,13 @@ class FileParse {
       await file.writeAsBytes(bytes, flush: true);
       completer.complete(file);
     } catch (e) {
-      throw Exception('Error parsing asset file!');
+      throw Exception('Error parsing asset file: $e');
     }
     return completer.future;
   }
 
   static Future<File> fromInternet(String url) async {
     Completer<File> completer = Completer();
-
-    dev.log("Start download file from internet!");
 
     try {
       final filename = url.substring(url.lastIndexOf("/") + 1);
@@ -40,13 +54,11 @@ class FileParse {
       var bytes = await consolidateHttpClientResponseBytes(response);
       var dir = await getApplicationDocumentsDirectory();
 
-      dev.log("Download files: ${dir.path}/$filename");
-
       File file = File("${dir.path}/$filename");
       await file.writeAsBytes(bytes, flush: true);
       completer.complete(file);
     } catch (e) {
-      throw Exception('Error parsing asset file!');
+      throw Exception('Error parsing internet file: $e');
     }
 
     return completer.future;

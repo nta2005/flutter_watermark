@@ -1,10 +1,14 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:image_watermark/image_watermark.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'package:flutter_watermark/utils/save_file.dart';
+import 'package:image/image.dart' as ui;
 
-Future<void> addWatermarkToPDF({
+import '../utils.dart';
+
+Future<void> waterMarkPDF({
   required String path,
   bool? centerWatermark = false,
 }) async {
@@ -154,5 +158,55 @@ Future<void> addWatermarkToPDF({
 
     //Save the file and launch/download
     SaveFile.saveAndLaunchFile(bytes, path.split('/').last);
+  }
+}
+
+Future<Uint8List> waterMarkImage(
+    {required String path, bool? centerWaterMark = false}) async {
+  try {
+    Uint8List inputBytes = File(path).readAsBytesSync();
+    Uint8List? watermarkedBytes;
+
+    final decodedImage = await decodeImageFromList(inputBytes);
+
+    var stringWidth = 0;
+    var stringHeight = 0;
+
+    final font = ui.arial_48;
+
+    final chars = waterMarkText.codeUnits;
+
+    for (var c in chars) {
+      final ch = font.characters[c]!;
+      stringWidth += ch.xadvance;
+      if (ch.height + ch.yoffset > stringHeight) {
+        stringHeight = ch.height + ch.yoffset;
+      }
+    }
+
+    int xPos = (decodedImage.width).round() - (stringWidth).round();
+
+    if (inputBytes.isNotEmpty) {
+      if (centerWaterMark!) {
+        watermarkedBytes = await ImageWatermark.addTextWatermarkCentered(
+          imgBytes: inputBytes,
+          watermarktext: waterMarkText,
+          color: Colors.white,
+        );
+      } else {
+        watermarkedBytes = await ImageWatermark.addTextWatermark(
+          imgBytes: inputBytes,
+          watermarkText: waterMarkText,
+          color: Colors.white,
+          dstX: xPos - 30,
+          dstY: 30,
+        );
+      }
+
+      return watermarkedBytes;
+    }
+    return inputBytes;
+  } catch (e) {
+    throw Exception('Error when watermark!');
   }
 }
