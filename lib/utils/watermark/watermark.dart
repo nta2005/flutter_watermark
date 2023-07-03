@@ -2,11 +2,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_watermark/utils/utils.dart';
 import 'package:image_watermark/image_watermark.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:image/image.dart' as ui;
-
-import '../utils.dart';
 
 Future<void> waterMarkPDF({
   required String path,
@@ -161,8 +160,8 @@ Future<void> waterMarkPDF({
   }
 }
 
-Future<Uint8List> waterMarkImage(
-    {required String path, bool? centerWaterMark = false}) async {
+Future<void> waterMarkImage(
+    {required String path, bool? centerWatermark = false}) async {
   try {
     Uint8List inputBytes = File(path).readAsBytesSync();
     Uint8List? watermarkedBytes;
@@ -187,7 +186,7 @@ Future<Uint8List> waterMarkImage(
     int xPos = (decodedImage.width).round() - (stringWidth).round();
 
     if (inputBytes.isNotEmpty) {
-      if (centerWaterMark!) {
+      if (centerWatermark!) {
         watermarkedBytes = await ImageWatermark.addTextWatermarkCentered(
           imgBytes: inputBytes,
           watermarktext: waterMarkText,
@@ -203,9 +202,8 @@ Future<Uint8List> waterMarkImage(
         );
       }
 
-      return watermarkedBytes;
+      SaveFile.saveAndLaunchFile(watermarkedBytes, path.split('/').last);
     }
-    return inputBytes;
   } catch (e) {
     throw Exception('Error when watermark!');
   }

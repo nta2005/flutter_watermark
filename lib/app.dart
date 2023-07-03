@@ -4,98 +4,90 @@ import 'assets/assets.dart';
 import 'utils/utils.dart';
 
 class App extends StatefulWidget {
-  const App({super.key, this.isPreview = false});
-
-  final bool? isPreview;
+  const App({super.key});
 
   @override
   State<App> createState() => _AppState();
 }
 
 class _AppState extends State<App> {
+  bool isPreview = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ButtonText(
-              title: 'Local PDF',
-              onPress: () {
-                String localPDF = pdf[1];
-                pdfPath(localPDF);
-              },
-            ),
-            ButtonText(
-              title: 'Remote PDF',
-              onPress: () {
-                String remotePDF = pdfRemotes[0];
-                pdfPath(remotePDF);
-              },
-            ),
-            ButtonText(
-              title: 'Image Local',
-              onPress: () {
-                String? localImage = images['jpg'];
-                imagePath(localImage!);
-              },
-            ),
-            ButtonText(
-              title: 'Image Online',
-              onPress: () {
-                String remoteImage = imageRemotes[0];
-                imagePath(remoteImage);
-              },
-            ),
-          ],
+          children: renderButton(),
         ),
       ),
     );
   }
 
-  Future<void> pdfPath(String path) async {
-    // String localPDF = pdf[1];
-    // String remotePDF = pdfRemotes[0];
+  List<Widget> renderButton() {
+    return buttons.map((item) {
+      return ButtonText(
+        title: item['title']!,
+        onPress: () {
+          handleButtonType(item['type']!);
+        },
+      );
+    }).toList();
+  }
 
+  Future<void> handleButtonType(String type) {
+    switch (type) {
+      case 'localPDF':
+        return addWatermarkToPDF(path: pdf[1], centerWatermark: true);
+
+      case 'remotePDF':
+        return addWatermarkToPDF(path: pdfRemotes[0]);
+
+      case 'localImage':
+        return addWatermarkToImage(path: images['jpg']!, centerWatermark: true);
+
+      case 'remoteImage':
+        return addWatermarkToImage(path: imageRemotes[0]);
+
+      default:
+        throw Exception('Unknown button type: $type');
+    }
+  }
+
+  Future<void> addWatermarkToPDF({
+    required String path,
+    bool? centerWatermark = false,
+  }) async {
     Loading.show(context);
 
     await FileParse.parse(path).then((value) {
-      if (widget.isPreview!) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PDFScreen(path: value.path),
-          ),
-        );
+      if (isPreview) {
+        navigate(PDFScreen(path: value.path, centerWatermark: centerWatermark));
       } else {
-        waterMarkPDF(path: value.path);
+        waterMarkPDF(path: value.path, centerWatermark: centerWatermark);
       }
     }).then((value) => Loading.hide(context));
   }
 
-  Future<void> imagePath(String path) async {
-    // String? localImage = images['jpg'];
-    // String remoteImage = imageRemotes[0];
-
-    String fileName = path.split('/').last;
-
+  Future<void> addWatermarkToImage(
+      {required String path, bool? centerWatermark = false}) async {
     Loading.show(context);
 
     await FileParse.parse(path).then((value) {
-      waterMarkImage(path: value.path).then((image) => {
-            if (widget.isPreview!)
-              {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ImageScreen(image: image),
-                  ),
-                ),
-              }
-            else
-              {SaveFile.saveAndLaunchFile(image, fileName)}
-          });
+      if (isPreview) {
+        navigate(
+          ImageScreen(path: value.path, centerWatermark: centerWatermark),
+        );
+      } else {
+        waterMarkImage(path: value.path, centerWatermark: centerWatermark);
+      }
     }).then((value) => Loading.hide(context));
+  }
+
+  Future<void> navigate(Widget page) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+    });
   }
 }

@@ -1,16 +1,19 @@
-import 'dart:typed_data';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_watermark/application/application.dart';
+import 'package:flutter_watermark/utils/utils.dart';
 
-class ImageScreen extends StatefulWidget {
-  const ImageScreen({super.key, required this.image});
+class ImageScreen extends StatelessWidget {
+  const ImageScreen({
+    super.key,
+    required this.path,
+    this.centerWatermark = false,
+  });
 
-  final Uint8List image;
+  final String path;
+  final bool? centerWatermark;
 
-  @override
-  State<ImageScreen> createState() => _ImageScreenState();
-}
-
-class _ImageScreenState extends State<ImageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,7 +21,23 @@ class _ImageScreenState extends State<ImageScreen> {
         child: Column(
           children: [
             Center(
-              child: Image.memory(widget.image),
+              child: Image.file(File(path)),
+            ),
+            TextButton(
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.resolveWith((states) => Colors.blue),
+              ),
+              onPressed: () {
+                Loading.show(context);
+                Future.delayed(const Duration(seconds: 1), () {
+                  waterMarkImage(path: path, centerWatermark: centerWatermark);
+                }).then((value) => Loading.hide(context));
+              },
+              child: const Text(
+                'Add watermark',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),

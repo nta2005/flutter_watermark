@@ -1,17 +1,18 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'dart:developer' as dev;
-
-import '../../../utils/utils.dart';
+import 'package:flutter_watermark/utils/utils.dart';
 
 class PDFScreen extends StatefulWidget {
   final String path;
+  final bool? centerWatermark;
 
   const PDFScreen({
     Key? key,
     required this.path,
+    this.centerWatermark = false,
   }) : super(key: key);
 
   @override
@@ -90,7 +91,8 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
               style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.resolveWith(
                       (states) => Colors.blue)),
-              onPressed: () => waterMarkPDF(path: widget.path),
+              onPressed: () => waterMarkPDF(
+                  path: widget.path, centerWatermark: widget.centerWatermark),
               child: const Text(
                 'Add watermark',
                 style: TextStyle(color: Colors.white),
