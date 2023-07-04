@@ -8,11 +8,13 @@ import 'package:flutter_watermark/utils/utils.dart';
 class PDFScreen extends StatefulWidget {
   final String path;
   final bool centerWatermark;
+  final bool imageWatermark;
 
   const PDFScreen({
     Key? key,
     required this.path,
     this.centerWatermark = false,
+    this.imageWatermark = false,
   }) : super(key: key);
 
   @override
@@ -92,7 +94,10 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
                   backgroundColor: MaterialStateProperty.resolveWith(
                       (states) => Colors.blue)),
               onPressed: () => waterMarkPDF(
-                  path: widget.path, centerWatermark: widget.centerWatermark),
+                path: widget.path,
+                centerWatermark: widget.centerWatermark,
+                imageWatermark: widget.imageWatermark,
+              ),
               child: const Text(
                 'Add watermark',
                 style: TextStyle(color: Colors.white),

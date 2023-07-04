@@ -9,10 +9,12 @@ class ImageScreen extends StatelessWidget {
     super.key,
     required this.path,
     this.centerWatermark = false,
+    this.imageWatermark = false,
   });
 
   final String path;
-  final bool? centerWatermark;
+  final bool centerWatermark;
+  final bool imageWatermark;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,11 @@ class ImageScreen extends StatelessWidget {
               onPressed: () {
                 Loading.show(context);
                 Future.delayed(const Duration(seconds: 1), () {
-                  waterMarkImage(path: path, centerWatermark: centerWatermark);
+                  waterMarkImage(
+                    path: path,
+                    centerWatermark: centerWatermark,
+                    imageWatermark: imageWatermark,
+                  );
                 }).then((value) => Loading.hide(context));
               },
               child: const Text(

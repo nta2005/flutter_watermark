@@ -1,7 +1,5 @@
-// ignore_for_file: unnecessary_import
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +8,7 @@ import 'package:flutter_watermark/utils/utils.dart';
 import 'package:image_watermark/image_watermark.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:image/image.dart' as ui;
+import 'dart:developer' as dev;
 
 Future<void> waterMarkPDF({
   required String path,
@@ -197,10 +196,21 @@ void pdfDrawStringFull(
   );
 }
 
-Future<void> waterMarkImage(
-    {required String path, bool? centerWatermark = false}) async {
+Future<void> waterMarkImage({
+  required String path,
+  bool centerWatermark = false,
+  bool imageWatermark = false,
+}) async {
   try {
     Uint8List inputBytes = File(path).readAsBytesSync();
+
+    ByteData data = await rootBundle.load(images['logo']!);
+
+    Uint8List watermarkBytes = data.buffer.asUint8List(
+      data.offsetInBytes,
+      data.lengthInBytes,
+    );
+
     Uint8List? watermarkedBytes;
 
     final decodedImage = await decodeImageFromList(inputBytes);
@@ -223,13 +233,13 @@ Future<void> waterMarkImage(
     int xPos = (decodedImage.width).round() - (stringWidth).round();
 
     if (inputBytes.isNotEmpty) {
-      if (centerWatermark!) {
+      if (centerWatermark && !imageWatermark) {
         watermarkedBytes = await ImageWatermark.addTextWatermarkCentered(
           imgBytes: inputBytes,
           watermarktext: waterMarkText,
           color: Colors.white,
         );
-      } else {
+      } else if (!centerWatermark && !imageWatermark) {
         watermarkedBytes = await ImageWatermark.addTextWatermark(
           imgBytes: inputBytes,
           watermarkText: waterMarkText,
@@ -237,11 +247,42 @@ Future<void> waterMarkImage(
           dstX: xPos - 30,
           dstY: 30,
         );
+      } else {
+        int imgSize = 250;
+        int xPos = (decodedImage.width).round() - (imgSize).round();
+        int yPos = -(imgSize * 0.35).round();
+
+        watermarkedBytes = await ImageWatermark.addImageWatermark(
+          originalImageBytes: inputBytes,
+          waterkmarkImageBytes: watermarkBytes,
+          imgHeight: imgSize,
+          imgWidth: imgSize,
+          dstX: xPos + (imgSize * 0.07).round(),
+          dstY: yPos,
+        );
+
+        if (centerWatermark) {
+          xPos = (decodedImage.width / 2).round() - (imgSize / 2).round();
+          yPos = (decodedImage.height / 2).round() - (imgSize / 2).round();
+          watermarkedBytes = await ImageWatermark.addImageWatermark(
+            originalImageBytes: inputBytes,
+            waterkmarkImageBytes: watermarkBytes,
+            imgHeight: imgSize,
+            imgWidth: imgSize,
+            dstX: xPos,
+            dstY: yPos,
+          );
+        }
       }
 
-      SaveFile.saveAndLaunchFile(watermarkedBytes, path.split('/').last);
+      String fileNameHandle = handleFileName(path);
+
+      dev.log(fileNameHandle);
+
+      //SaveFile.saveAndLaunchFile(watermarkedBytes, path.split('/').last);
+      SaveFile.saveLocalAndLaunchFile(watermarkedBytes, fileNameHandle);
     }
   } catch (e) {
-    throw Exception('Error when watermark!');
+    throw Exception('Error when watermark: $e');
   }
 }

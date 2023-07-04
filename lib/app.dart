@@ -19,7 +19,9 @@ class _AppState extends State<App> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: renderButton(),
+          children: [
+            ...renderButton(),
+          ],
         ),
       ),
     );
@@ -39,59 +41,39 @@ class _AppState extends State<App> {
   Future<void> handleButtonType(String type) {
     switch (type) {
       case 'localPDF':
-        return addWatermarkToPDF(path: pdf[1], centerWatermark: true);
+        return addWatermarkToPDF(
+          context,
+          path: pdf[1],
+          centerWatermark: true,
+          isPreview: isPreview,
+        );
 
       case 'remotePDF':
-        return addWatermarkToPDF(path: pdfRemotes[0], imageWatermark: true);
+        return addWatermarkToPDF(
+          context,
+          path: pdfRemotes[0],
+          imageWatermark: true,
+          isPreview: isPreview,
+        );
 
       case 'localImage':
-        return addWatermarkToImage(path: images['jpg']!, centerWatermark: true);
+        return addWatermarkToImage(
+          context,
+          path: images['jpg']!,
+          centerWatermark: true,
+          isPreview: isPreview,
+        );
 
       case 'remoteImage':
-        return addWatermarkToImage(path: imageRemotes[0]);
+        return addWatermarkToImage(
+          context,
+          path: imageRemotes[0],
+          imageWatermark: true,
+          isPreview: isPreview,
+        );
 
       default:
         throw Exception('Unknown button type: $type');
     }
-  }
-
-  Future<void> addWatermarkToPDF({
-    required String path,
-    bool centerWatermark = false,
-    bool imageWatermark = false,
-  }) async {
-    Loading.show(context);
-
-    await FileParse.parse(path).then((value) {
-      if (isPreview) {
-        navigate(PDFScreen(path: value.path, centerWatermark: centerWatermark));
-      } else {
-        waterMarkPDF(
-            path: value.path,
-            centerWatermark: centerWatermark,
-            imageWatermark: imageWatermark);
-      }
-    }).then((value) => Loading.hide(context));
-  }
-
-  Future<void> addWatermarkToImage(
-      {required String path, bool? centerWatermark = false}) async {
-    Loading.show(context);
-
-    await FileParse.parse(path).then((value) {
-      if (isPreview) {
-        navigate(
-          ImageScreen(path: value.path, centerWatermark: centerWatermark),
-        );
-      } else {
-        waterMarkImage(path: value.path, centerWatermark: centerWatermark);
-      }
-    }).then((value) => Loading.hide(context));
-  }
-
-  Future<void> navigate(Widget page) async {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => page));
-    });
   }
 }

@@ -6,6 +6,7 @@ const images = {
   "tiff": "lib/assets/images/sample.tiff",
   "webp": "lib/assets/images/sample.webp",
   "png": "lib/assets/images/watermark.png",
+  "logo": "lib/assets/images/blackpink_logo.png",
 };
 
 const imageRemotes = [
