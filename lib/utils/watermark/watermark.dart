@@ -1,7 +1,11 @@
+// ignore_for_file: unnecessary_import
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_watermark/assets/assets.dart';
 import 'package:flutter_watermark/utils/utils.dart';
 import 'package:image_watermark/image_watermark.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -9,7 +13,8 @@ import 'package:image/image.dart' as ui;
 
 Future<void> waterMarkPDF({
   required String path,
-  bool? centerWatermark = false,
+  bool centerWatermark = false,
+  bool imageWatermark = false,
 }) async {
   List<int> inputBytes = File(path).readAsBytesSync();
 
@@ -33,16 +38,19 @@ Future<void> waterMarkPDF({
       //Create PDF graphics for the page
       PdfGraphics graphics = page.graphics;
 
+      if (imageWatermark) {
+        size = graphics.clientSize;
+      }
+
       //Get image data
       //File imageFile = File('assets/images/watermark.png');
       //Uint8List imagebytes = await imageFile.readAsBytes();
 
-      // ByteData imageFile =
-      //     await rootBundle.load('assets/images/watermark.png');
-      // Uint8List imagebytes = imageFile.buffer
-      //     .asUint8List(imageFile.offsetInBytes, imageFile.lengthInBytes);
+      ByteData imageFile = await rootBundle.load(images['png']!);
+      Uint8List imagebytes = imageFile.buffer
+          .asUint8List(imageFile.offsetInBytes, imageFile.lengthInBytes);
 
-      // String imageBase64 = base64.encode(imagebytes);
+      String imageBase64 = base64.encode(imagebytes);
 
       //Calculate the center point
       double x = pageSize.width / 2;
@@ -60,90 +68,26 @@ Future<void> waterMarkPDF({
       //Rotate the text to -40 Degree
       graphics.rotateTransform(-40);
 
+      if (imageWatermark) {
+        graphics.rotateTransform(40);
+      }
+
       //Draw the watermark text to the desired position over the PDF page with red color
-
-      if (centerWatermark!) {
-        graphics.drawString(
-          'Confidential',
-          font,
-          pen: PdfPen(PdfColor(255, 0, 0)),
-          brush: PdfBrushes.red,
-          bounds: Rect.fromLTWH(
-            -size.width / 2,
-            -size.height / 2,
-            size.width,
-            size.height,
-          ),
-        );
+      if (centerWatermark && !imageWatermark) {
+        pdfDrawStringCenter('Confidential', graphics, font, size);
+      } else if (!centerWatermark && !imageWatermark) {
+        pdfDrawStringFull('Confidential', graphics, font, size);
       } else {
-        graphics.drawString(
-          'Confidential',
-          font,
-          pen: PdfPen(PdfColor(255, 0, 0)),
-          brush: PdfBrushes.red,
-          bounds: Rect.fromLTWH(
-            -size.width / 2,
-            -size.height / 2,
-            size.width,
-            size.height,
-          ),
-        );
-
-        graphics.drawString(
-          'Confidential',
-          font,
-          pen: PdfPen(PdfColor(255, 0, 0)),
-          brush: PdfBrushes.red,
-          bounds: Rect.fromLTWH(
-            -size.width / 3,
-            -size.height * 2,
-            size.width,
-            size.height,
-          ),
-        );
-
-        graphics.drawString(
-          'Confidential',
-          font,
-          pen: PdfPen(PdfColor(255, 0, 0)),
-          brush: PdfBrushes.red,
-          bounds: Rect.fromLTWH(
-            -size.width / 3,
-            -size.height * 3.5,
-            size.width,
-            size.height,
-          ),
-        );
-
-        graphics.drawString(
-          'Confidential',
-          font,
-          pen: PdfPen(PdfColor(255, 0, 0)),
-          brush: PdfBrushes.red,
-          bounds: Rect.fromLTWH(
-            -size.width / 1.5,
-            size.height,
-            size.width,
-            size.height,
-          ),
-        );
-
-        graphics.drawString(
-          'Confidential',
-          font,
-          pen: PdfPen(PdfColor(255, 0, 0)),
-          brush: PdfBrushes.red,
-          bounds: Rect.fromLTWH(
-            -size.width / 2,
-            size.height * 2.5,
-            size.width,
-            size.height,
+        graphics.drawImage(
+          PdfBitmap.fromBase64String(imageBase64),
+          Rect.fromLTWH(
+            -graphics.clientSize.width / 2,
+            -graphics.clientSize.height / 2,
+            graphics.clientSize.width,
+            graphics.clientSize.height,
           ),
         );
       }
-
-      // graphics.drawImage(PdfBitmap.fromBase64String(imageBase64),
-      //     Rect.fromLTWH(-size.width, -size.height, size.width, size.height));
 
       //Restore the graphics
       graphics.restore();
@@ -158,6 +102,99 @@ Future<void> waterMarkPDF({
     //Save the file and launch/download
     SaveFile.saveAndLaunchFile(bytes, path.split('/').last);
   }
+}
+
+void pdfDrawStringCenter(
+  String string,
+  PdfGraphics graphics,
+  PdfFont font,
+  Size size,
+) {
+  graphics.drawString(
+    string,
+    font,
+    pen: PdfPen(PdfColor(255, 0, 0)),
+    brush: PdfBrushes.red,
+    bounds: Rect.fromLTWH(
+      -size.width / 2,
+      -size.height / 2,
+      size.width,
+      size.height,
+    ),
+  );
+}
+
+// Testing
+void pdfDrawStringFull(
+  String string,
+  PdfGraphics graphics,
+  PdfFont font,
+  Size size,
+) {
+  graphics.drawString(
+    string,
+    font,
+    pen: PdfPen(PdfColor(255, 0, 0)),
+    brush: PdfBrushes.red,
+    bounds: Rect.fromLTWH(
+      -size.width / 2,
+      -size.height / 2,
+      size.width,
+      size.height,
+    ),
+  );
+
+  graphics.drawString(
+    string,
+    font,
+    pen: PdfPen(PdfColor(255, 0, 0)),
+    brush: PdfBrushes.red,
+    bounds: Rect.fromLTWH(
+      -size.width / 3,
+      -size.height * 2,
+      size.width,
+      size.height,
+    ),
+  );
+
+  graphics.drawString(
+    string,
+    font,
+    pen: PdfPen(PdfColor(255, 0, 0)),
+    brush: PdfBrushes.red,
+    bounds: Rect.fromLTWH(
+      -size.width / 3,
+      -size.height * 3.5,
+      size.width,
+      size.height,
+    ),
+  );
+
+  graphics.drawString(
+    string,
+    font,
+    pen: PdfPen(PdfColor(255, 0, 0)),
+    brush: PdfBrushes.red,
+    bounds: Rect.fromLTWH(
+      -size.width / 1.5,
+      size.height,
+      size.width,
+      size.height,
+    ),
+  );
+
+  graphics.drawString(
+    string,
+    font,
+    pen: PdfPen(PdfColor(255, 0, 0)),
+    brush: PdfBrushes.red,
+    bounds: Rect.fromLTWH(
+      -size.width / 2,
+      size.height * 2.5,
+      size.width,
+      size.height,
+    ),
+  );
 }
 
 Future<void> waterMarkImage(

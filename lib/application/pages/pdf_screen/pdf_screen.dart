@@ -7,7 +7,7 @@ import 'package:flutter_watermark/utils/utils.dart';
 
 class PDFScreen extends StatefulWidget {
   final String path;
-  final bool? centerWatermark;
+  final bool centerWatermark;
 
   const PDFScreen({
     Key? key,

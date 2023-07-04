@@ -42,7 +42,7 @@ class _AppState extends State<App> {
         return addWatermarkToPDF(path: pdf[1], centerWatermark: true);
 
       case 'remotePDF':
-        return addWatermarkToPDF(path: pdfRemotes[0]);
+        return addWatermarkToPDF(path: pdfRemotes[0], imageWatermark: true);
 
       case 'localImage':
         return addWatermarkToImage(path: images['jpg']!, centerWatermark: true);
@@ -57,7 +57,8 @@ class _AppState extends State<App> {
 
   Future<void> addWatermarkToPDF({
     required String path,
-    bool? centerWatermark = false,
+    bool centerWatermark = false,
+    bool imageWatermark = false,
   }) async {
     Loading.show(context);
 
@@ -65,7 +66,10 @@ class _AppState extends State<App> {
       if (isPreview) {
         navigate(PDFScreen(path: value.path, centerWatermark: centerWatermark));
       } else {
-        waterMarkPDF(path: value.path, centerWatermark: centerWatermark);
+        waterMarkPDF(
+            path: value.path,
+            centerWatermark: centerWatermark,
+            imageWatermark: imageWatermark);
       }
     }).then((value) => Loading.hide(context));
   }
