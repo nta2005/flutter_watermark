@@ -8,7 +8,6 @@ import 'package:flutter_watermark/utils/utils.dart';
 import 'package:image_watermark/image_watermark.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:image/image.dart' as ui;
-import 'dart:developer' as dev;
 
 Future<void> waterMarkPDF({
   required String path,
@@ -46,8 +45,8 @@ Future<void> waterMarkPDF({
       //Uint8List imagebytes = await imageFile.readAsBytes();
 
       ByteData imageFile = await rootBundle.load(images['png']!);
-      Uint8List imagebytes = imageFile.buffer
-          .asUint8List(imageFile.offsetInBytes, imageFile.lengthInBytes);
+      Uint8List imagebytes =
+          imageFile.buffer.asUint8List(imageFile.offsetInBytes, imageFile.lengthInBytes);
 
       String imageBase64 = base64.encode(imagebytes);
 
@@ -99,101 +98,8 @@ Future<void> waterMarkPDF({
     document.dispose();
 
     //Save the file and launch/download
-    SaveFile.saveAndLaunchFile(bytes, path.split('/').last);
+    SaveFile.saveAndLaunch(bytes, handleFileName(path), public: true);
   }
-}
-
-void pdfDrawStringCenter(
-  String string,
-  PdfGraphics graphics,
-  PdfFont font,
-  Size size,
-) {
-  graphics.drawString(
-    string,
-    font,
-    pen: PdfPen(PdfColor(255, 0, 0)),
-    brush: PdfBrushes.red,
-    bounds: Rect.fromLTWH(
-      -size.width / 2,
-      -size.height / 2,
-      size.width,
-      size.height,
-    ),
-  );
-}
-
-// Testing
-void pdfDrawStringFull(
-  String string,
-  PdfGraphics graphics,
-  PdfFont font,
-  Size size,
-) {
-  graphics.drawString(
-    string,
-    font,
-    pen: PdfPen(PdfColor(255, 0, 0)),
-    brush: PdfBrushes.red,
-    bounds: Rect.fromLTWH(
-      -size.width / 2,
-      -size.height / 2,
-      size.width,
-      size.height,
-    ),
-  );
-
-  graphics.drawString(
-    string,
-    font,
-    pen: PdfPen(PdfColor(255, 0, 0)),
-    brush: PdfBrushes.red,
-    bounds: Rect.fromLTWH(
-      -size.width / 3,
-      -size.height * 2,
-      size.width,
-      size.height,
-    ),
-  );
-
-  graphics.drawString(
-    string,
-    font,
-    pen: PdfPen(PdfColor(255, 0, 0)),
-    brush: PdfBrushes.red,
-    bounds: Rect.fromLTWH(
-      -size.width / 3,
-      -size.height * 3.5,
-      size.width,
-      size.height,
-    ),
-  );
-
-  graphics.drawString(
-    string,
-    font,
-    pen: PdfPen(PdfColor(255, 0, 0)),
-    brush: PdfBrushes.red,
-    bounds: Rect.fromLTWH(
-      -size.width / 1.5,
-      size.height,
-      size.width,
-      size.height,
-    ),
-  );
-
-  graphics.drawString(
-    string,
-    font,
-    pen: PdfPen(PdfColor(255, 0, 0)),
-    brush: PdfBrushes.red,
-    bounds: Rect.fromLTWH(
-      -size.width / 2,
-      size.height * 2.5,
-      size.width,
-      size.height,
-    ),
-  );
 }
 
 Future<void> waterMarkImage({
@@ -275,12 +181,7 @@ Future<void> waterMarkImage({
         }
       }
 
-      String fileNameHandle = handleFileName(path);
-
-      dev.log(fileNameHandle);
-
-      //SaveFile.saveAndLaunchFile(watermarkedBytes, path.split('/').last);
-      SaveFile.saveLocalAndLaunchFile(watermarkedBytes, fileNameHandle);
+      SaveFile.saveAndLaunch(watermarkedBytes, handleFileName(path), public: true);
     }
   } catch (e) {
     throw Exception('Error when watermark: $e');

@@ -1,7 +1,14 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_watermark/application/application.dart';
 import 'package:flutter_watermark/utils/utils.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:developer' as dev;
+
+export 'pdf_draw.dart';
 
 Future<void> addWatermarkToPDF(
   BuildContext context, {
@@ -64,15 +71,55 @@ Future<void> navigate(BuildContext context, Widget page) async {
 }
 
 String handleFileName(String path) {
-  final fileName = path.split('/').last;
+  final file = path.split('/').last;
 
-  final first = fileName.split('.').first;
+  final name = file.split('.').first;
 
-  final last = fileName.split('.').last;
+  final ext = file.split('.').last;
 
-  final now = DateTime.now();
+  final now = DateFormat('dd_MM_yyyy_HHmmss').format(DateTime.now()).toString();
 
-  final nowFormat = DateFormat('yyyy_MM_dd_HHmmss').format(now).toString();
+  final nameHandle = '${name}_$now.$ext';
 
-  return '${first}_$nowFormat.$last';
+  dev.log('File: $nameHandle');
+
+  return nameHandle;
+}
+
+checkStoragePermission() async {
+  PermissionStatus status;
+  if (Platform.isAndroid) {
+    final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+    final AndroidDeviceInfo info = await deviceInfoPlugin.androidInfo;
+    if ((info.version.sdkInt) >= 33) {
+      status = await Permission.manageExternalStorage.request();
+      status = await Permission.photos.request();
+      status = await Permission.videos.request();
+    } else {
+      status = await Permission.storage.request();
+    }
+  } else {
+    status = await Permission.storage.request();
+  }
+
+  dev.log('Permission Status: $status');
+
+  switch (status) {
+    case PermissionStatus.denied:
+      openAppSettings();
+      return false;
+    case PermissionStatus.granted:
+      return true;
+    case PermissionStatus.restricted:
+      openAppSettings();
+      return false;
+    case PermissionStatus.limited:
+      return true;
+    case PermissionStatus.permanentlyDenied:
+      openAppSettings();
+      return false;
+    default:
+      openAppSettings();
+      return false;
+  }
 }
