@@ -98,7 +98,7 @@ Future<void> waterMarkPDF({
     document.dispose();
 
     //Save the file and launch/download
-    SaveFile.saveAndLaunch(bytes, handleFileName(path), public: true);
+    SaveFile.saveAndLaunchFile(bytes, handleFileName(path));
   }
 }
 
@@ -181,7 +181,7 @@ Future<void> waterMarkImage({
         }
       }
 
-      SaveFile.saveAndLaunch(watermarkedBytes, handleFileName(path), public: true);
+      SaveFile.saveAndLaunchFile(watermarkedBytes, handleFileName(path));
     }
   } catch (e) {
     throw Exception('Error when watermark: $e');

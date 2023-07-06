@@ -1,4 +1,7 @@
-const String waterMarkText = 'WATERMARK';
+const waterMarkText = 'WATERMARK';
+const titleAppPermission = 'APP PERMISSIONS';
+const contentAppPermission =
+    'App permissions should be granted, would you like to go to app settings to give?';
 
 const buttons = [
   {'title': 'Local PDF', 'type': 'localPDF'},

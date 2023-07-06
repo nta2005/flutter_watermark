@@ -19,20 +19,33 @@ Future<void> addWatermarkToPDF(
 }) async {
   Loading.show(context);
 
-  await FileParse.parse(path).then((value) {
-    if (isPreview) {
-      navigate(
-        context,
-        PDFScreen(path: value.path, centerWatermark: centerWatermark),
-      );
-    } else {
-      waterMarkPDF(
-        path: value.path,
-        centerWatermark: centerWatermark,
-        imageWatermark: imageWatermark,
-      );
-    }
-  }).then((value) => Loading.hide(context));
+  bool status = await checkPermissions();
+
+  if (status) {
+    await FileParse.parse(path).then((value) {
+      if (isPreview) {
+        navigate(
+          context,
+          PDFScreen(
+            path: value.path,
+            centerWatermark: centerWatermark,
+            imageWatermark: imageWatermark,
+          ),
+        );
+      } else {
+        waterMarkPDF(
+          path: value.path,
+          centerWatermark: centerWatermark,
+          imageWatermark: imageWatermark,
+        );
+      }
+    }).then((value) => Loading.hide(context));
+  } else {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Loading.hide(context);
+      alertAppPermission(context);
+    });
+  }
 }
 
 Future<void> addWatermarkToImage(
@@ -44,24 +57,42 @@ Future<void> addWatermarkToImage(
 }) async {
   Loading.show(context);
 
-  await FileParse.parse(path).then((value) {
-    if (isPreview) {
-      navigate(
-        context,
-        ImageScreen(
+  bool status = await checkPermissions();
+
+  if (status) {
+    await FileParse.parse(path).then((value) {
+      if (isPreview) {
+        navigate(
+          context,
+          ImageScreen(
+            path: value.path,
+            centerWatermark: centerWatermark,
+            imageWatermark: imageWatermark,
+          ),
+        );
+      } else {
+        waterMarkImage(
           path: value.path,
           centerWatermark: centerWatermark,
           imageWatermark: imageWatermark,
-        ),
-      );
-    } else {
-      waterMarkImage(
-        path: value.path,
-        centerWatermark: centerWatermark,
-        imageWatermark: imageWatermark,
-      );
-    }
-  }).then((value) => Loading.hide(context));
+        );
+      }
+    }).then((value) => Loading.hide(context));
+  } else {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Loading.hide(context);
+      alertAppPermission(context);
+    });
+  }
+}
+
+void alertAppPermission(context) {
+  Alert.show(
+    context,
+    title: titleAppPermission,
+    content: contentAppPermission,
+    pressOk: () => openAppSettings(),
+  );
 }
 
 Future<void> navigate(BuildContext context, Widget page) async {
@@ -86,7 +117,7 @@ String handleFileName(String path) {
   return nameHandle;
 }
 
-checkStoragePermission() async {
+Future<bool> checkPermissions() async {
   PermissionStatus status;
   if (Platform.isAndroid) {
     final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
@@ -106,20 +137,16 @@ checkStoragePermission() async {
 
   switch (status) {
     case PermissionStatus.denied:
-      openAppSettings();
       return false;
     case PermissionStatus.granted:
       return true;
     case PermissionStatus.restricted:
-      openAppSettings();
       return false;
     case PermissionStatus.limited:
       return true;
     case PermissionStatus.permanentlyDenied:
-      openAppSettings();
       return false;
     default:
-      openAppSettings();
       return false;
   }
 }
